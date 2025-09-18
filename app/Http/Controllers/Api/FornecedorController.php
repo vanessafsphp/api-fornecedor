@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use App\Services\Api\FornecedorService;
 use App\Http\Resources\Api\FornecedorResource;
 use App\Http\Requests\Api\FornecedorStoreRequest;
@@ -15,8 +15,8 @@ class FornecedorController extends Controller
 
     public function __construct(FornecedorService $service)
     {
-        $this->middleware('auth:sanctum');
         $this->service = $service;
+        $this->middleware('auth:sanctum');
     }
 
     public function index(Request $request)
