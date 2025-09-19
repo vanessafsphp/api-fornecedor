@@ -183,3 +183,9 @@ O projeto inclui `Testes de Feature` (mínimo: sucesso, falha de validação, bu
 ```bash
 php artisan test
 ```
+
+---
+
+## 4. Arquivos complementares
+* `Script do código legado` - encontra-se na pasta `script` deste repositório.
+* `Plano de Migração` - encontra-se em formato `.docx` na raiz deste repositório.
