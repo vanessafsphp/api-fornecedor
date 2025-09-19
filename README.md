@@ -1,61 +1,185 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# API de Criação/Listagem de Fornecedor - Laravel 12
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este projeto implementa a refatoração da funcionalidade de criação e listagem de um sistema legado PHP nativo (7.4) para uma API REST moderna, utilizando Laravel 12 com arquitetura limpa e boas práticas.
 
-## About Laravel
+## 1. Instalação e Configuração
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Pré-requisitos
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* **PHP 8.2+**
+* **Composer**
+* **MySQL/MariaDB**
+* **Laravel 12**
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1.1. Setup Inicial
 
-## Learning Laravel
+1.  **Clone o Repositório:**
+    ```bash
+    git clone https://github.com/vanessafsphp/api-fornecedor.git
+    cd api-fornecedor
+    ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2.  **Instale as Dependências:**
+    ```bash
+    composer install
+    ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+3.  **Configure o Ambiente (`.env`):**
+    * Crie o arquivo `.env` (copie de `.env.example`).
+    ```bash
+    cp .env.example .env
+    ```
+    * Gere a chave de aplicação do Laravel.
+    ```bash
+    php artisan key:generate
+    ```
+    * Configure as credenciais de banco de dados. Ex.:
+    ```ini
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=api-fornecedor
+    DB_USERNAME=root
+    DB_PASSWORD=
+    ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+4.  **Executar as Migrations:**
+    As *migrations* criarão as tabelas do banco de dados `api-fornecedor` (conforme exemplo acima), que são padrão do Laravel e também a tabela `fornecedores` responsável por armazenar os dados relacionados a cada Fornecedor.
+    ```bash
+    php artisan migrate
+    ```
 
-## Laravel Sponsors
+5.  **Popular Dados de Teste (Seeder):**
+    Para popular a tabela com 100 registros fictícios (usando `FornecedorFactory`):
+    ```bash
+    php artisan db:seed
+    ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+6.  **Inicie o Servidor:**
+    ```bash
+    php artisan serve
+    ```
+    A API estará acessível em `http://127.0.0.1:8000/`.
 
-### Premium Partners
+7.  **Autenticação para Teste:**
+    * A aplicação está utilizando o Sanctum para autenticação via token.
+    * Para criar um usuário de teste e gerar token:
+    ```bash
+    php artisan tinker
+    >>> $user = User::factory()->create();
+    >>> $token = $user->createToken('api-token')->plainTextToken;
+    ```
+    * Como usar o token gerado nas requests via Postman ou Insomnia, adicionar ao Header:
+    ```bash
+    Authorization: Bearer {token}
+    ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## 2. Endpoints da API
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Os *endpoints* que substituem a lógica do arquivo `fornecedor_legacy.php` (`action=list` e `action=create`) são:
 
-## Code of Conduct
+| Método | Rota | Descrição | Equivalente Legado |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/fornecedores?busca={$termo}` | Lista fornecedores. Filtra opcionalmente por nome (`busca`). Limite de 50 registros. | `action=list` |
+| **POST** | `/api/v1/fornecedores` | Cria um novo fornecedor. Necessário enviar os dados em formato `JSON` via Body | `action=create` |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Exemplo de Requisição (POST)
 
-## Security Vulnerabilities
+```http
+POST [http://127.0.0.1:8000/api/v1/fornecedores](http://127.0.0.1:8000/api/v1/fornecedores)
+Authorization: Bearer {token}
+Content-Type: application/json
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+{
+    "nome": "Nova Empresa",
+    "cnpj": "11.111.111/0001-00", 
+    "email": "contato@novaempresa.com"
+}
+```
 
-## License
+### Exemplo de Requisição (GET)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```http
+GET [http://127.0.0.1:8000/api/v1/fornecedores](http://127.0.0.1:8000/api/v1/fornecedores)
+Authorization: Bearer {token}
+Accept: application/json
+
+{
+	"data": [
+		{
+			"id": 1,
+			"nome": "Cremin Inc",
+			"cnpj": "40406051006101",
+			"email": "edwina99@example.com",
+			"criado_em": "18/09/2025 13:11:12"
+		},
+		{
+			"id": 2,
+			"nome": "Schinner Ltd",
+			"cnpj": "28421672857475",
+			"email": "cdicki@example.net",
+			"criado_em": "18/09/2025 13:11:12"
+		},
+		{
+			"id": 3,
+			"nome": "Gaylord-Hill",
+			"cnpj": "99836220871168",
+			"email": "lhamill@example.org",
+			"criado_em": "18/09/2025 13:11:12"
+		},
+        {...},
+    ],
+	"links": {
+		"first": "http://localhost:8000/api/v1/fornecedores?page=1",
+		"last": "http://localhost:8000/api/v1/fornecedores?page=2",
+		"prev": null,
+		"next": "http://localhost:8000/api/v1/fornecedores?page=2"
+	},
+	"meta": {
+		"current_page": 1,
+		"from": 1,
+		"last_page": 2,
+		"links": [
+			{
+				"url": null,
+				"label": "&laquo; Previous",
+				"page": null,
+				"active": false
+			},
+			{
+				"url": "http://localhost:8000/api/v1/fornecedores?page=1",
+				"label": "1",
+				"page": 1,
+				"active": true
+			},
+			{
+				"url": "http://localhost:8000/api/v1/fornecedores?page=2",
+				"label": "2",
+				"page": 2,
+				"active": false
+			},
+			{
+				"url": "http://localhost:8000/api/v1/fornecedores?page=2",
+				"label": "Next &raquo;",
+				"page": 2,
+				"active": false
+			}
+		],
+		"path": "http://localhost:8000/api/v1/fornecedores",
+		"per_page": 50,
+		"to": 50,
+		"total": 100
+	}
+}
+```
+
+---
+
+## 3. Testes Automatizados
+
+O projeto inclui `Testes de Feature` (mínimo: sucesso, falha de validação, busca filtrada, limite de busca) para garantir que a nova API seja eficiente e funcionalmente equivalente ao sistema legado.
+```bash
+php artisan test
+```
